@@ -1,0 +1,31 @@
+{
+    "##": "Upstream (ygguorun/scoop-bucket) pinned 3.2.3.1 and no longer resolves: PixPin renamed the portable artifact from PixPin_cn_zh-cn_<ver>.zip to PixPin_win_<ver>.zip and moved downloads to down.pixpin.cn, so the old checkver regex matched nothing. This manifest tracks the new naming.",
+    "version": "3.5.5.1",
+    "description": "A free screenshot, pin-to-screen and OCR tool for Windows and macOS.",
+    "homepage": "https://pixpin.cn/",
+    "license": {
+        "identifier": "Freeware",
+        "url": "https://pixpin.cn/docs/policy/tos_zh_CN"
+    },
+    "url": "https://down.pixpin.cn/PixPin_win_3.5.5.1.zip",
+    "hash": "1c6d81e7cc9791862553cceab5123e84d700b59efa2943aa17503fc81088106a",
+    "extract_dir": "PixPin",
+    "shortcuts": [
+        [
+            "PixPin.exe",
+            "PixPin"
+        ]
+    ],
+    "persist": [
+        "Config",
+        "Data",
+        "History"
+    ],
+    "checkver": {
+        "url": "https://pixpin.cn/download",
+        "regex": "PixPin_win_([\\d.]+)\\.zip"
+    },
+    "autoupdate": {
+        "url": "https://down.pixpin.cn/PixPin_win_$version.zip"
+    }
+}

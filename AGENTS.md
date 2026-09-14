@@ -26,4 +26,4 @@ Run commands from the repository root in PowerShell.
 
 - Keep CRLF line endings: `.gitattributes` enforces `* text=auto eol=crlf`, and `.editorconfig` sets `end_of_line = crlf`.
 - Use 4-space indentation for JSON and PowerShell; YAML uses 2 spaces.
-- Prefer a declarative `autoupdate.hash` block over a bare hash so the Excavator can refresh hashes without downloading large artifacts. `pi-desktop` reads the SHA-256 from the GitHub release API `digest` field; `paseo` uses Scoop's built-in `github` hash mode.
+- Prefer a declarative `autoupdate.hash` block over a bare hash so the Excavator can refresh hashes without downloading large artifacts. `pi-desktop` reads the SHA-256 from the GitHub release API `digest` field; `paseo` uses Scoop's built-in `github` hash mode; `pixpin` is not on GitHub, so its hash must be computed by download on each version bump.
