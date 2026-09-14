@@ -60,12 +60,54 @@ only when the URL is a plain GitHub release asset.
   }
   ```
 
+## Surviving an OS reinstall
+
+Scoop keeps apps and `persist` data on whatever drive it is installed to, so
+wiping C: does not touch them. That only helps if an app's state actually lives
+under `persist`.
+
+- **`pi-desktop`** defaults to `~/.pi-desktop`, which sits on C: and is therefore
+  lost on reinstall. The manifest sets `PI_DESKTOP_DATA_DIR` to `$persist_dir\data`
+  so the state moves onto the Scoop drive.
+- **`paseo`** and **`pixpin`** use the ordinary `persist` field, which Scoop
+  handles natively.
+
+### Why `env_set` and not a junction
+
+`scoop reset` is the standard way to relink an app after a reinstall. Scoop's
+`scoop-reset.ps1` only calls:
+
+```
+create_shims / create_startmenu_shortcuts / env_add_path / env_set
+unlink_persist_data / persist_data
+```
+
+It never runs `installer`, `pre_install`, or `post_install` hooks. A data
+directory wired up by a junction inside `installer.script` — the approach
+`paseo` uses — would therefore **not** be recreated by `scoop reset`. `env_set`
+is re-applied, so `PI_DESKTOP_DATA_DIR` comes back on its own.
+
+`pre_install` performs the one-time migration of an existing `~/.pi-desktop`
+into `$persist_dir\data`. It refuses to run while PI-Desktop is open and is
+idempotent, so re-running an install is safe.
+
+### Caveat: single-instance lock
+
+PI-Desktop disables its single-instance lock whenever `PI_DESKTOP_DATA_DIR` is
+set:
+
+```js
+const singleInstanceRequired = !process.env.PI_DESKTOP_DATA_DIR;
+```
+
+Launching it twice therefore starts two instances sharing one `pi.sqlite`
+instead of focusing the existing window. Avoid double-launching.
+
 ## Manifest notes
 
 - **`pi-desktop`** installs the Windows portable build. That `.exe` is an NSIS
   archive; the manifest downloads it as `#/dl.7z` and unpacks the inner
-  `$PLUGINSDIR\app-64.7z`. User data lives outside the app directory, so updates
-  never touch settings or sessions.
+  `$PLUGINSDIR\app-64.7z`. Data persistence is covered above.
 - **`paseo`** keeps state in `%APPDATA%\Paseo` and `%USERPROFILE%\.paseo`. Its
   installer/uninstaller scripts migrate those into `$persist_dir` and replace them
   with junctions. Upstream's manifest declared AGPL-3.0-or-later; the project is
