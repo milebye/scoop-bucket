@@ -1,5 +1,5 @@
 {
-    "##": "PI-Desktop stores its data in ~/.pi-desktop, which lives on C: and is therefore wiped by an OS reinstall. PI_DESKTOP_DATA_DIR redirects it to $persist_dir on the Scoop drive. env_set is used instead of a junction because `scoop reset` - the standard post-reinstall recovery - re-applies env_set but does NOT run installer/pre_install/post_install hooks, so a junction would never be recreated. Caveat: PI-Desktop skips its single-instance lock whenever PI_DESKTOP_DATA_DIR is set, so avoid launching it twice.",
+    "##": "PI-Desktop keeps state in ~/.pi-desktop and %APPDATA%\\PI-Desktop, both on C:, so an OS reinstall wipes them. installer.script migrates both into $persist_dir and replaces them with junctions, which is transparent to the app and preserves its single-instance lock. This is preferred over env_set (PI_DESKTOP_DATA_DIR) because setting that variable makes PI-Desktop skip requestSingleInstanceLock. After a reinstall, run the install/update once more (or recreate the junctions by hand) to relink; data itself always survives in $persist_dir.",
     "version": "0.14.8",
     "description": "The desktop workspace for AI coding agents.",
     "homepage": "https://github.com/vastsa/PI-Desktop",
@@ -13,27 +13,64 @@
             "hash": "09a594fadfe94ab80faa6cbf9565270c6c6fc5df89d866f729efbfd2dd7bc007",
             "pre_install": [
                 "Get-Item \"$dir\\`$PLUGINSDIR\\app-64.7z\" | Expand-7zipArchive -DestinationPath \"$dir\" -Removal",
-                "Remove-Item \"$dir\\`$PLUGINSDIR\" -Recurse -Force -ErrorAction SilentlyContinue",
-                "$dataDir = Join-Path $persist_dir 'data'",
-                "$legacy = Join-Path $env:USERPROFILE '.pi-desktop'",
-                "$legacyIsReal = (Test-Path $legacy) -and !(Get-Item $legacy -Force).LinkType",
-                "if ($legacyIsReal -and !(Test-Path $dataDir)) {",
-                "    if (Get-Process -Name 'PI-Desktop' -ErrorAction SilentlyContinue) {",
-                "        throw 'Close PI-Desktop first: its existing data must be migrated to the persist directory.'",
-                "    }",
-                "    New-Item $persist_dir -ItemType Directory -Force | Out-Null",
-                "    Move-Item $legacy $dataDir -Force",
-                "    Write-Host \"Migrated PI-Desktop data: '$legacy' -> '$dataDir'\" -ForegroundColor Green",
-                "} elseif ($legacyIsReal) {",
-                "    Write-Host \"Data exists in both '$legacy' and '$dataDir'; using '$dataDir'.\" -ForegroundColor Yellow",
-                "    Write-Host \"Merge '$legacy' manually if it is newer, then delete it.\" -ForegroundColor Yellow",
-                "}",
-                "if (!(Test-Path $dataDir)) { New-Item $dataDir -ItemType Directory -Force | Out-Null }"
+                "Remove-Item \"$dir\\`$PLUGINSDIR\" -Recurse -Force -ErrorAction SilentlyContinue"
             ]
         }
     },
-    "env_set": {
-        "PI_DESKTOP_DATA_DIR": "$persist_dir\\data"
+    "installer": {
+        "script": [
+            "# Relocate PI-Desktop state onto the Scoop drive and link it back with junctions.",
+            "$links = @(",
+            "    @{ Source = \"$env:USERPROFILE\\.pi-desktop\"; Target = \"$persist_dir\\data\" },",
+            "    @{ Source = \"$env:APPDATA\\PI-Desktop\";   Target = \"$persist_dir\\appdata\" }",
+            ")",
+            "$pending = @()",
+            "foreach ($link in $links) {",
+            "    $source = $link.Source",
+            "    $target = $link.Target",
+            "    if (Test-Path $source) {",
+            "        if ((Get-Item $source -Force).LinkType) { continue }",
+            "        if (Test-Path $target) {",
+            "            Write-Host \"Both '$source' and '$target' hold data; leaving '$source' alone.\" -ForegroundColor Yellow",
+            "            Write-Host \"Merge it into '$target' by hand if it is newer, then reinstall to link it.\" -ForegroundColor Yellow",
+            "            continue",
+            "        }",
+            "        $pending += $link",
+            "    } else {",
+            "        if (!(Test-Path $target)) { New-Item $target -ItemType Directory -Force | Out-Null }",
+            "    }",
+            "}",
+            "if ($pending) {",
+            "    if (Get-Process -Name 'PI-Desktop' -ErrorAction SilentlyContinue) {",
+            "        throw 'Close PI-Desktop first: its existing data has to be moved to the persist directory.'",
+            "    }",
+            "    New-Item $persist_dir -ItemType Directory -Force | Out-Null",
+            "    foreach ($link in $pending) {",
+            "        Move-Item $link.Source $link.Target -Force",
+            "        Write-Host \"Moved '$($link.Source)' -> '$($link.Target)'\" -ForegroundColor Green",
+            "    }",
+            "}",
+            "foreach ($link in $links) {",
+            "    if (!(Test-Path $link.Source)) {",
+            "        New-Item -ItemType Junction -Path $link.Source -Target $link.Target | Out-Null",
+            "        Write-Host \"Linked '$($link.Source)' -> '$($link.Target)'\" -ForegroundColor Green",
+            "    }",
+            "}"
+        ]
+    },
+    "uninstaller": {
+        "script": [
+            "# Remove the junctions only; persisted data stays in $persist_dir.",
+            "$links = @(",
+            "    @{ Source = \"$env:USERPROFILE\\.pi-desktop\"; Target = \"$persist_dir\\data\" },",
+            "    @{ Source = \"$env:APPDATA\\PI-Desktop\";   Target = \"$persist_dir\\appdata\" }",
+            ")",
+            "foreach ($link in $links) {",
+            "    if ((Test-Path $link.Source) -and (Get-Item $link.Source -Force).LinkType) {",
+            "        Remove-Item $link.Source -Force -Recurse -ErrorAction SilentlyContinue",
+            "    }",
+            "}"
+        ]
     },
     "bin": "PI-Desktop.exe",
     "shortcuts": [
