@@ -1,0 +1,38 @@
+{
+    "version": "0.14.8",
+    "description": "The desktop workspace for AI coding agents.",
+    "homepage": "https://github.com/vastsa/PI-Desktop",
+    "license": {
+        "identifier": "Freeware",
+        "url": "https://github.com/vastsa/PI-Desktop/blob/main/LICENSE"
+    },
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/vastsa/PI-Desktop/releases/download/v0.14.8/PI-Desktop-Portable-0.14.8.exe#/dl.7z",
+            "hash": "sha256:09a594fadfe94ab80faa6cbf9565270c6c6fc5df89d866f729efbfd2dd7bc007",
+            "pre_install": [
+                "Get-Item \"$dir\\`$PLUGINSDIR\\app-64.7z\" | Expand-7zipArchive -DestinationPath \"$dir\" -Removal",
+                "Remove-Item \"$dir\\`$PLUGINSDIR\" -Recurse -Force -ErrorAction SilentlyContinue"
+            ]
+        }
+    },
+    "bin": "PI-Desktop.exe",
+    "shortcuts": [
+        [
+            "PI-Desktop.exe",
+            "PI-Desktop"
+        ]
+    ],
+    "checkver": "github",
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/vastsa/PI-Desktop/releases/download/v$version/PI-Desktop-Portable-$version.exe#/dl.7z"
+            }
+        },
+        "hash": {
+            "url": "https://api.github.com/repos/vastsa/PI-Desktop/releases",
+            "jp": "$..assets[?(@.browser_download_url == '$url')].digest"
+        }
+    }
+}
