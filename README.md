@@ -8,6 +8,29 @@ Personal [Scoop](https://scoop.sh) bucket.
 scoop bucket add milebye https://github.com/milebye/scoop-bucket
 ```
 
+Then install what you need:
+
+```powershell
+scoop install paseo pi-desktop pixpin
+```
+
+### Coming from another bucket?
+
+`paseo` and `pixpin` also exist in other buckets, and Scoop remembers which
+bucket an app came from in its `install.json`. If you installed them
+elsewhere, remove that bucket only *after* reinstalling from here — otherwise
+`scoop status` reports `Manifest removed` and updates silently stop working:
+
+```powershell
+scoop uninstall paseo pixpin
+scoop install paseo pixpin
+scoop bucket rm <old-bucket>
+```
+
+User data is not affected: everything lives in $persist_dir, so the reinstall
+reconnects it. Close the apps first — their installer scripts refuse to migrate
+data while the app is running.
+
 ## All manifests
 
 - [**paseo**](https://github.com/getpaseo/paseo) One interface for Claude Code, Codex, Copilot, OpenCode, and Pi agents.

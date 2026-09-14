@@ -1,5 +1,18 @@
 # OS / editor noise
 .DS_Store
 Thumbs.db
+desktop.ini
+*~
+*.swp
+
+# Logs and temporary files
 *.log
 *.tmp
+
+# Local scratch used while testing manifests
+/tmp/
+/BuildOutput/
+/out/
+
+# Local PSScriptAnalyzer overrides (referenced by .vscode/settings.json)
+PSScriptAnalyzerSettings.psd1
