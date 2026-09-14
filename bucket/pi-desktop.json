@@ -3,7 +3,7 @@
     "description": "The desktop workspace for AI coding agents.",
     "homepage": "https://github.com/vastsa/PI-Desktop",
     "license": {
-        "identifier": "Freeware",
+        "identifier": "LGPL-3.0-or-later",
         "url": "https://github.com/vastsa/PI-Desktop/blob/main/LICENSE"
     },
     "architecture": {

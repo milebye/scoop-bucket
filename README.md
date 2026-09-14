@@ -1,84 +1,64 @@
-# PI-Desktop Scoop Bucket
+# scoop-bucket
 
-Unofficial [Scoop](https://scoop.sh) bucket for [PI-Desktop](https://github.com/vastsa/PI-Desktop)
-(the desktop workspace for AI coding agents).
-
-The manifest installs the official Windows **portable** build, unpacks it into the
-Scoop app directory, and creates a `PI-Desktop.exe` shim plus a Start Menu shortcut.
+Personal [Scoop](https://scoop.sh) bucket.
 
 ## Install
 
 ```powershell
-scoop bucket add pi https://github.com/<your-name>/pi-scoop-bucket
-scoop install pi-desktop
+scoop bucket add milebye https://github.com/milebye/scoop-bucket
 ```
 
-## Update
+## All manifests
+
+- [**paseo**](https://github.com/getpaseo/paseo) One interface for Claude Code, Codex, Copilot, OpenCode, and Pi agents.
+- [**pi-desktop**](https://github.com/vastsa/PI-Desktop) The desktop workspace for AI coding agents.
+
+## How automatic updates work
+
+Every manifest carries `checkver` + `autoupdate`, and
+`.github/workflows/excavator.yml` runs Scoop's Excavator every 4 hours on GitHub
+Actions. When upstream publishes a release, the workflow commits the bumped
+`version`/`url`/`hash` back to this repository automatically.
+
+That means clients only ever need:
 
 ```powershell
-scoop update pi-desktop
+scoop update
+scoop update *
 ```
 
-You never edit the manifest by hand. The version and hash are discovered
-automatically by Scoop's `checkver` / `autoupdate` from the GitHub releases API.
+No manifest is edited by hand, and no local machine needs to be awake.
 
-## How the automatic update works
+### Why the `autoupdate.hash` block matters
 
-`bucket/pi-desktop.json` contains:
+`pi-desktop` ships a ~115 MB portable `.exe`, so its manifest declares an
+explicit hash source instead of relying on Scoop's default behaviour:
 
 ```json
-"checkver": "github",
-"autoupdate": {
-    "architecture": {
-        "64bit": {
-            "url": "https://github.com/vastsa/PI-Desktop/releases/download/v$version/PI-Desktop-Portable-$version.exe#/dl.7z"
-        }
-    },
-    "hash": {
-        "url": "https://api.github.com/repos/vastsa/PI-Desktop/releases",
-        "jp": "$..assets[?(@.browser_download_url == '$url')].digest"
-    }
+"hash": {
+    "url": "https://api.github.com/repos/vastsa/PI-Desktop/releases",
+    "jp": "$..assets[?(@.browser_download_url == '$url')].digest"
 }
 ```
 
-- `checkver: github` reads the latest release tag.
-- `autoupdate` rewrites the download URL for the new tag.
-- The `hash` block pulls the SHA-256 `digest` straight from the GitHub API,
-  so the updater does **not** re-download the ~115 MB installer just to hash it.
+Scoop's built-in `github` hash mode matches on the raw download URL. Because the
+`pi-desktop` URL ends in a Scoop fragment (`#/dl.7z`), that match fails and Scoop
+falls back to downloading the whole artifact just to hash it. Pointing at the
+release API `digest` field avoids that download entirely.
 
-### Important: `scoop update` alone does not refresh the manifest
+`paseo` has no such fragment, so it uses the default `github` mode and needs no
+explicit hash block.
 
-`checkver`/`autoupdate` are **maintainer-side** features. `scoop update <app>`
-only re-installs whatever version the manifest currently declares; `scoop update`
-on its own merely `git pull`s the buckets. Nothing on your machine rewrites the
-manifest. So to stay current with zero manual work, you need one of these:
+## Maintenance
 
-1. **Server-side (recommended, fully hands-off):** the `Excavator` GitHub Actions
-   workflow in `.github/workflows/excavator.yml` runs every 4 hours, runs checkver
-   for every manifest, and commits the bumped `version`/`url`/`hash` back to this
-   repo. Fork/copy this repo, enable Actions (Settings → Actions → allow), and your
-   `scoop update pi-desktop` will always see the newest release — even while your
-   machine was off.
+Run from the repository root in PowerShell. The `bin/*.ps1` wrappers call
+Scoop's own scripts against `bucket/`.
 
-2. **Local (no GitHub repo needed):** run `scripts/Update-PiDesktopScoop.ps1`.
-   It invokes Scoop's own `checkver.ps1 -Update` against your local bucket to
-   rewrite the manifest, then runs `scoop update pi-desktop`. Register it as a
-   Scheduled Task for unattended updates:
+```powershell
+& .\bin\formatjson.ps1          # format all manifests
+& .\bin\checkver.ps1            # report available updates
+& .\bin\checkhashes.ps1         # verify hashes
+& .\bin\test.ps1                # Pester suite (needs BuildHelpers + Pester 5.2.0)
+```
 
-   ```powershell
-   schtasks /Create /TN "PiDesktop Scoop Update" /SC DAILY /ST 12:00 `
-     /TR "powershell -NoProfile -ExecutionPolicy Bypass -File \"$env:USERPROFILE\pi-scoop-bucket\scripts\Update-PiDesktopScoop.ps1\""
-   ```
-
-Both paths were tested end-to-end: a manifest pinned to an old version is
-automatically bumped to the current release with a correct hash, and the new
-build installs cleanly.
-
-## Notes
-
-- User data lives in `%APPDATA%\PI-Desktop`, outside the Scoop app directory, so
-  updating or reinstalling never touches your settings, sessions, or plugins.
-- Only the Windows x64 portable build is covered. macOS/Linux users should use
-  the release artifacts directly.
-- The portable `.exe` is an NSIS archive; the manifest downloads it as `#/dl.7z`
-  and unpacks the inner `$PLUGINSDIR\app-64.7z` into the app directory.
+See [AGENTS.md](AGENTS.md) for the full conventions.
