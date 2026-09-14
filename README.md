@@ -17,9 +17,9 @@ scoop install paseo pi-desktop pixpin
 ### Coming from another bucket?
 
 `paseo` and `pixpin` also exist in other buckets, and Scoop remembers which
-bucket an app came from in its `install.json`. If you installed them
-elsewhere, remove that bucket only *after* reinstalling from here — otherwise
-`scoop status` reports `Manifest removed` and updates silently stop working:
+bucket an app came from in its install.json. If you installed them elsewhere,
+remove that bucket only *after* reinstalling from here - otherwise `scoop status`
+reports Manifest removed and updates silently stop working:
 
 ```powershell
 scoop uninstall paseo pixpin
@@ -27,10 +27,9 @@ scoop install paseo pixpin
 scoop bucket rm <old-bucket>
 ```
 
-User data is not affected: everything lives in $persist_dir, so the reinstall
-reconnects it. Close the apps first — their installer scripts refuse to migrate
-data while the app is running.
-
+User data is not affected: it lives in $persist_dir, so the reinstall
+reconnects it. Close the apps first - the installer scripts migrate data only
+while the app is closed.
 ## All manifests
 
 - [**paseo**](https://github.com/getpaseo/paseo) One interface for Claude Code, Codex, Copilot, OpenCode, and Pi agents.
@@ -90,9 +89,10 @@ wiping C: does not touch them. That only helps if an app's state actually lives
 under `persist`.
 
 - **`pi-desktop`** keeps state in `~/.pi-desktop` **and** `%APPDATA%\PI-Desktop`,
-  both on C:. Its `installer.script` migrates them into `$persist_dir` and
-  then links them back with junctions, keeping the original folder names.
-- **`paseo`** does the same for `%APPDATA%\Paseo` and `%USERPROFILE%\.paseo`.
+  both on C:. Its `installer.script` moves them into `$persist_dir\.pi-desktop`
+  and `$persist_dir\appdata`, then links them back with junctions.
+- **`paseo`** does the same for `%USERPROFILE%\.paseo` and `%APPDATA%\Paseo`,
+  using `$persist_dir\.paseo` and `$persist_dir\appdata`.
 - **`pixpin`** uses the ordinary `persist` field, which Scoop handles natively.
 
 ### Why junctions
@@ -123,13 +123,15 @@ New-Item -ItemType Junction -Path "$env:USERPROFILE\.pi-desktop" `
 
 ### Migration behaviour
 
-`installer.script` moves pre-existing data once, and is written to be safe to
-re-run:
+`installer.script` follows the same shape as `paseo`'s, and is safe to re-run:
 
-- migrates only when the home path is a real directory and the persist target is
-  empty;
-- refuses to run while PI-Desktop is open, so a live `pi.sqlite` is never moved;
-- if data exists in both places, warns and leaves both untouched;
+- stops a running PI-Desktop first, so a live `pi.sqlite` is never moved
+  mid-write;
+- if the persist target is empty, moves the home directory into it;
+- if both hold data, copies the home directory over the target (the live data
+  wins) and then removes the home directory — `Copy-Item -Force` keeps hidden
+  files such as `.updaterId`;
+- if the home path is already a junction, leaves it alone;
 - on uninstall, removes only the junctions and keeps everything in `$persist_dir`.
 
 ## Manifest notes

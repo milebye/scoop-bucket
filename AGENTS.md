@@ -117,16 +117,10 @@ redirect them.
 
 ### Persisted folder names
 
-Folders inside `$persist_dir` keep the app's original names — `.pi-desktop`
-and `PI-Desktop`, matching paseo's `.paseo`/`appdata` convention. Do not
-rename them to generic names like `data`: a future maintainer inspecting
-`$persist_dir` should be able to tell at a glance which app a folder belongs
-to.
-
-An earlier revision of this manifest used `data`/`appdata`. The installer
-still recognises those names and renames them in place on the next run, so the
-junction never ends up pointing at an empty directory.
-
+Folders inside `$persist_dir` follow paseo's convention: the home directory
+keeps its original name (`.pi-desktop`), while the `%APPDATA%` one is stored as
+`appdata`. Keep that shape rather than inventing a `data`/`PI-Desktop` split -
+matching the sibling manifest keeps `$persist_dir` readable at a glance.
 ### Why junctions rather than `env_set`
 
 `pi-desktop` exposes `PI_DESKTOP_DATA_DIR`, which `env_set` could point at
