@@ -1,5 +1,5 @@
-﻿{
-    "version": "0.14.6",
+{
+    "version": "0.14.8",
     "description": "The desktop workspace for AI coding agents.",
     "homepage": "https://github.com/vastsa/PI-Desktop",
     "license": {
@@ -8,8 +8,8 @@
     },
     "architecture": {
         "64bit": {
-            "url": "https://github.com/vastsa/PI-Desktop/releases/download/v0.14.6/PI-Desktop-Portable-0.14.6.exe#/dl.7z",
-            "hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "url": "https://github.com/vastsa/PI-Desktop/releases/download/v0.14.8/PI-Desktop-Portable-0.14.8.exe#/dl.7z",
+            "hash": "09a594fadfe94ab80faa6cbf9565270c6c6fc5df89d866f729efbfd2dd7bc007",
             "pre_install": [
                 "Get-Item \"$dir\\`$PLUGINSDIR\\app-64.7z\" | Expand-7zipArchive -DestinationPath \"$dir\" -Removal",
                 "Remove-Item \"$dir\\`$PLUGINSDIR\" -Recurse -Force -ErrorAction SilentlyContinue"
