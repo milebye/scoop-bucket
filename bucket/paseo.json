@@ -1,4 +1,5 @@
 {
+    "##": "Paseo keeps its state in %APPDATA%\\Paseo and %USERPROFILE%\\.paseo. The installer/uninstaller scripts below migrate those paths into $persist_dir and replace them with junctions, so updates never drop user data. Upstream's manifest declared AGPL-3.0-or-later; the project is actually Apache-2.0 (see LICENSE and package.json).",
     "version": "0.8.0",
     "description": "One interface for Claude Code, Codex, Copilot, OpenCode, and Pi agents.",
     "homepage": "https://github.com/getpaseo/paseo",
