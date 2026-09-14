@@ -90,8 +90,8 @@ wiping C: does not touch them. That only helps if an app's state actually lives
 under `persist`.
 
 - **`pi-desktop`** keeps state in `~/.pi-desktop` **and** `%APPDATA%\PI-Desktop`,
-  both on C:. Its `installer.script` migrates them into `$persist_dir\data` and
-  `$persist_dir\appdata`, then links them back with junctions.
+  both on C:. Its `installer.script` migrates them into `$persist_dir` and
+  then links them back with junctions, keeping the original folder names.
 - **`paseo`** does the same for `%APPDATA%\Paseo` and `%USERPROFILE%\.paseo`.
 - **`pixpin`** uses the ordinary `persist` field, which Scoop handles natively.
 
@@ -118,7 +118,7 @@ by hand:
 
 ```powershell
 New-Item -ItemType Junction -Path "$env:USERPROFILE\.pi-desktop" `
-  -Target "$env:SCOOP\persist\pi-desktop\data"
+  -Target "$env:SCOOP\persist\pi-desktop\.pi-desktop"
 ```
 
 ### Migration behaviour
