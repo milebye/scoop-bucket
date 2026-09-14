@@ -66,42 +66,48 @@ Scoop keeps apps and `persist` data on whatever drive it is installed to, so
 wiping C: does not touch them. That only helps if an app's state actually lives
 under `persist`.
 
-- **`pi-desktop`** defaults to `~/.pi-desktop`, which sits on C: and is therefore
-  lost on reinstall. The manifest sets `PI_DESKTOP_DATA_DIR` to `$persist_dir\data`
-  so the state moves onto the Scoop drive.
-- **`paseo`** and **`pixpin`** use the ordinary `persist` field, which Scoop
-  handles natively.
+- **`pi-desktop`** keeps state in `~/.pi-desktop` **and** `%APPDATA%\PI-Desktop`,
+  both on C:. Its `installer.script` migrates them into `$persist_dir\data` and
+  `$persist_dir\appdata`, then links them back with junctions.
+- **`paseo`** does the same for `%APPDATA%\Paseo` and `%USERPROFILE%\.paseo`.
+- **`pixpin`** uses the ordinary `persist` field, which Scoop handles natively.
 
-### Why `env_set` and not a junction
+### Why junctions
 
-`scoop reset` is the standard way to relink an app after a reinstall. Scoop's
-`scoop-reset.ps1` only calls:
+Junctions are transparent: PI-Desktop still sees `~/.pi-desktop` and does not
+know the bytes live on D:. That keeps its single-instance lock working.
 
-```
-create_shims / create_startmenu_shortcuts / env_add_path / env_set
-unlink_persist_data / persist_data
-```
-
-It never runs `installer`, `pre_install`, or `post_install` hooks. A data
-directory wired up by a junction inside `installer.script` — the approach
-`paseo` uses — would therefore **not** be recreated by `scoop reset`. `env_set`
-is re-applied, so `PI_DESKTOP_DATA_DIR` comes back on its own.
-
-`pre_install` performs the one-time migration of an existing `~/.pi-desktop`
-into `$persist_dir\data`. It refuses to run while PI-Desktop is open and is
-idempotent, so re-running an install is safe.
-
-### Caveat: single-instance lock
-
-PI-Desktop disables its single-instance lock whenever `PI_DESKTOP_DATA_DIR` is
-set:
+The alternative is the app's own `PI_DESKTOP_DATA_DIR` variable via `env_set`.
+It is re-applied by `scoop reset` (which matters, because `scoop-reset.ps1`
+never runs `installer`/`pre_install`/`post_install` hooks), but it has a real
+cost:
 
 ```js
 const singleInstanceRequired = !process.env.PI_DESKTOP_DATA_DIR;
 ```
 
-Launching it twice therefore starts two instances sharing one `pi.sqlite`
-instead of focusing the existing window. Avoid double-launching.
+Setting that variable disables the single-instance lock, so launching the app
+twice starts two instances sharing one `pi.sqlite`. Junctions avoid that
+trade-off, at the price of needing one extra `scoop install`/`scoop update`
+after a reinstall to recreate the links. The data itself always survives in
+`$persist_dir`; only the pointer needs rebuilding, and it can also be recreated
+by hand:
+
+```powershell
+New-Item -ItemType Junction -Path "$env:USERPROFILE\.pi-desktop" `
+  -Target "$env:SCOOP\persist\pi-desktop\data"
+```
+
+### Migration behaviour
+
+`installer.script` moves pre-existing data once, and is written to be safe to
+re-run:
+
+- migrates only when the home path is a real directory and the persist target is
+  empty;
+- refuses to run while PI-Desktop is open, so a live `pi.sqlite` is never moved;
+- if data exists in both places, warns and leaves both untouched;
+- on uninstall, removes only the junctions and keeps everything in `$persist_dir`.
 
 ## Manifest notes
 
