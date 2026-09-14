@@ -1,4 +1,5 @@
 {
+    "##": "PI-Desktop stores its data in ~/.pi-desktop, which lives on C: and is therefore wiped by an OS reinstall. PI_DESKTOP_DATA_DIR redirects it to $persist_dir on the Scoop drive. env_set is used instead of a junction because `scoop reset` - the standard post-reinstall recovery - re-applies env_set but does NOT run installer/pre_install/post_install hooks, so a junction would never be recreated. Caveat: PI-Desktop skips its single-instance lock whenever PI_DESKTOP_DATA_DIR is set, so avoid launching it twice.",
     "version": "0.14.8",
     "description": "The desktop workspace for AI coding agents.",
     "homepage": "https://github.com/vastsa/PI-Desktop",
@@ -12,9 +13,27 @@
             "hash": "09a594fadfe94ab80faa6cbf9565270c6c6fc5df89d866f729efbfd2dd7bc007",
             "pre_install": [
                 "Get-Item \"$dir\\`$PLUGINSDIR\\app-64.7z\" | Expand-7zipArchive -DestinationPath \"$dir\" -Removal",
-                "Remove-Item \"$dir\\`$PLUGINSDIR\" -Recurse -Force -ErrorAction SilentlyContinue"
+                "Remove-Item \"$dir\\`$PLUGINSDIR\" -Recurse -Force -ErrorAction SilentlyContinue",
+                "$dataDir = Join-Path $persist_dir 'data'",
+                "$legacy = Join-Path $env:USERPROFILE '.pi-desktop'",
+                "$legacyIsReal = (Test-Path $legacy) -and !(Get-Item $legacy -Force).LinkType",
+                "if ($legacyIsReal -and !(Test-Path $dataDir)) {",
+                "    if (Get-Process -Name 'PI-Desktop' -ErrorAction SilentlyContinue) {",
+                "        throw 'Close PI-Desktop first: its existing data must be migrated to the persist directory.'",
+                "    }",
+                "    New-Item $persist_dir -ItemType Directory -Force | Out-Null",
+                "    Move-Item $legacy $dataDir -Force",
+                "    Write-Host \"Migrated PI-Desktop data: '$legacy' -> '$dataDir'\" -ForegroundColor Green",
+                "} elseif ($legacyIsReal) {",
+                "    Write-Host \"Data exists in both '$legacy' and '$dataDir'; using '$dataDir'.\" -ForegroundColor Yellow",
+                "    Write-Host \"Merge '$legacy' manually if it is newer, then delete it.\" -ForegroundColor Yellow",
+                "}",
+                "if (!(Test-Path $dataDir)) { New-Item $dataDir -ItemType Directory -Force | Out-Null }"
             ]
         }
+    },
+    "env_set": {
+        "PI_DESKTOP_DATA_DIR": "$persist_dir\\data"
     },
     "bin": "PI-Desktop.exe",
     "shortcuts": [
