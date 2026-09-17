@@ -1,6 +1,6 @@
 {
     "##": "PI-Desktop keeps state in ~/.pi-desktop and %APPDATA%\\PI-Desktop, both on C:, so an OS reinstall wipes them. installer.script moves them into $persist_dir and links them back with junctions, which is transparent to the app and preserves its single-instance lock. Preferred over env_set (PI_DESKTOP_DATA_DIR) because setting that variable makes PI-Desktop skip requestSingleInstanceLock. After a reinstall, run install/update once more to relink; data always survives in $persist_dir.",
-    "version": "0.14.8",
+    "version": "0.15.0",
     "description": "The desktop workspace for AI coding agents.",
     "homepage": "https://github.com/vastsa/PI-Desktop",
     "license": {
@@ -9,8 +9,8 @@
     },
     "architecture": {
         "64bit": {
-            "url": "https://github.com/vastsa/PI-Desktop/releases/download/v0.14.8/PI-Desktop-Portable-0.14.8.exe#/dl.7z",
-            "hash": "09a594fadfe94ab80faa6cbf9565270c6c6fc5df89d866f729efbfd2dd7bc007",
+            "url": "https://github.com/vastsa/PI-Desktop/releases/download/v0.15.0/PI-Desktop-Portable-0.15.0.exe#/dl.7z",
+            "hash": "65848a26f3d796446d65fd6d14191d1018400758ed89a91c16c29dfeb71088a6",
             "pre_install": [
                 "Get-Item \"$dir\\`$PLUGINSDIR\\app-64.7z\" | Expand-7zipArchive -DestinationPath \"$dir\" -Removal",
                 "Remove-Item \"$dir\\`$PLUGINSDIR\" -Recurse -Force -ErrorAction SilentlyContinue"
