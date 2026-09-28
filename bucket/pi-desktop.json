@@ -1,6 +1,6 @@
 {
     "##": "PI-Desktop keeps state in ~/.pi-desktop and %APPDATA%\\PI-Desktop, both on C:, so an OS reinstall wipes them. installer.script moves them into $persist_dir and links them back with junctions, which is transparent to the app and preserves its single-instance lock. Preferred over env_set (PI_DESKTOP_DATA_DIR) because setting that variable makes PI-Desktop skip requestSingleInstanceLock. After a reinstall, run install/update once more to relink; data always survives in $persist_dir. Note: upstream switched the Windows portable artifact from an NSIS .exe to a plain .zip in v0.15.4 (vastsa/PI-Desktop#857), so this manifest downloads the zip directly - the old .exe#/dl.7z URL stopped resolving.",
-    "version": "0.15.9",
+    "version": "0.15.10",
     "description": "The desktop workspace for AI coding agents.",
     "homepage": "https://github.com/vastsa/PI-Desktop",
     "license": {
@@ -9,8 +9,8 @@
     },
     "architecture": {
         "64bit": {
-            "url": "https://github.com/vastsa/PI-Desktop/releases/download/v0.15.9/PI-Desktop-Portable-0.15.9.zip",
-            "hash": "cb9c1c5abd2681dbc60f1a18d153340a83a1364f204fe608d9d9bd9ddc922207"
+            "url": "https://github.com/vastsa/PI-Desktop/releases/download/v0.15.10/PI-Desktop-Portable-0.15.10.zip",
+            "hash": "ae8efabbedc5e9b9e07c01cd42c424b62425f5674f59f3ab32038e5d94f7c213"
         }
     },
     "installer": {
