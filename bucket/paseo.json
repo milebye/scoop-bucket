@@ -1,6 +1,6 @@
 {
     "##": "Paseo keeps its state in %APPDATA%\\Paseo and %USERPROFILE%\\.paseo. The installer/uninstaller scripts below migrate those paths into $persist_dir and replace them with junctions, so updates never drop user data. Upstream's manifest declared AGPL-3.0-or-later; the project is actually Apache-2.0 (see LICENSE and package.json).",
-    "version": "0.10.3",
+    "version": "0.11.0",
     "description": "One interface for Claude Code, Codex, Copilot, OpenCode, and Pi agents.",
     "homepage": "https://github.com/getpaseo/paseo",
     "license": {
@@ -9,12 +9,12 @@
     },
     "architecture": {
         "64bit": {
-            "url": "https://github.com/getpaseo/paseo/releases/download/v0.10.3/Paseo-Setup-0.10.3-x64.zip",
-            "hash": "7908a80968bd5d87d904e2cb8bada1e4fd6b3ad566cb81925b18226e50c51675"
+            "url": "https://github.com/getpaseo/paseo/releases/download/v0.11.0/Paseo-Setup-0.11.0-x64.zip",
+            "hash": "bd202d8cd5e013e80aac0e39bdfb51971b6c45658b543673bc33782fe4824cd5"
         },
         "arm64": {
-            "url": "https://github.com/getpaseo/paseo/releases/download/v0.10.3/Paseo-Setup-0.10.3-arm64.zip",
-            "hash": "d69d6b5530f3e710c50ae43cc81ed050ed0f0f24236581421cde0a9b433bbb08"
+            "url": "https://github.com/getpaseo/paseo/releases/download/v0.11.0/Paseo-Setup-0.11.0-arm64.zip",
+            "hash": "cbd75b4c0538c99ab370608fc7485dbfca7ac25d4aa6253140430381b2a78f60"
         }
     },
     "installer": {
